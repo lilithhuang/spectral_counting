@@ -99,14 +99,6 @@ def convert_to_csv(params):
                     #test_sequence = match['modified_sequence']
                     test_sequence = match['peptide']
                     
-                    #TODO
-                    if test_sequence == 'HVLATLGEK':
-                        print ('PARSING PEPXML found HVLATLGEK')
-                        print (scan)
-                        print ('###')
-                        print (match['peptide'])
-                        print (match)
-                    
                     for peptide in protein['peptides']:
                         charge = peptide['charge']
                         sequence = peptide['peptide_sequence']
@@ -128,6 +120,7 @@ def convert_to_csv(params):
     n_unique_scan_total = 0
     reps = []
     for group_id, protxml_group in protxml_groups.items():
+    
         protxml_group['cluster'] = {'group_number': group_id, 'protein_list': [], 'protein_group_id': '', 'description': '', 'counts': {}}
     
         for protein in protxml_group['proteins']:
@@ -240,20 +233,20 @@ def convert_to_csv(params):
         for i in reversed(range(len(proteins))):
             protein = proteins[i]
             #TODO
-            if protein['protein_name'] == 'sp|P05977|MYL1_MOUSE':
+            if protein['protein_name'] == 'p|P46662|MERL_MOUSE':
                 print (protein['protein_name'])
-                print ('FILTERING found MYL1 protein')
+                print ('FILTERING found sp|P46662|MERL_MOUSE protein')
             if protein['probability'] < prob_cutoff or protein['protein_name'].startswith('DECOY'):
                 #TODO
-                if protein['protein_name'] == 'sp|P05977|MYL1_MOUSE':
-                    print ('deleting MYL1_MOUSE bc does not meet cutoff')
+                if protein['protein_name'] == 'sp|P46662|MERL_MOUSE':
+                    print ('deleting MERL_MOUSE bc does not meet cutoff')
                     print (protein['protein_name'])
                 del proteins[i]
                 protxml_group['cluster']['protein_list'].remove(protein['protein_name'])
             elif 'n_peptide' not in protein or protein['n_peptide'] == 0:
                 #TODO
-                if protein['protein_name'] == 'sp|P05977|MYL1_MOUSE':
-                    print ('deleting MYL1_MOUSE bc n peptide is 0')
+                if protein['protein_name'] == 'sp|P46662|MERL_MOUSE':
+                    print ('deleting MERL_MOUSE bc n peptide is 0')
                     print (protein['protein_name'])
                 del proteins[i]
                 protxml_group['cluster']['protein_list'].remove(protein['protein_name'])
@@ -263,26 +256,14 @@ def convert_to_csv(params):
                     if len(protein['counts'][rep]['unique_peptide']) != 0:
                         remove = False
                 if remove == True:
-                    #TODO
-                    if protein['protein_name'] == 'sp|P05977|MYL1_MOUSE':
-                        print ('deleting MYL1_MOUSE bc unique peptide is 0')
-                        print (protein['protein_name'])
                     del proteins[i]
                     protxml_group['cluster']['protein_list'].remove(protein['protein_name'])
                 
                 #polulating peptide_dict
                 else: 
                     for peptide in proteins[i]['peptides']: 
-                    
-                        #TODO
-                        if (peptide['peptide_sequence']) == 'HVLATLGEK':
-                            print ('PEPTIDE DICT found peptide')
-                            print (peptide['peptide_sequence'])
-                            print (peptide)
+                       
                         if len(peptide['scans']) == 0: #handles case where peptide has no scans
-                            #TODO
-                            if (peptide['peptide_sequence']) == 'HVLATLGEK':
-                                print ('HVLATLGEK has no scans')
                             continue
                         else:
                             #print ('adding scans here')
@@ -302,15 +283,19 @@ def convert_to_csv(params):
                                 if protxml_group['cluster']['description'] not in peptide_dict[peptide['peptide_sequence']]['group_name']:
                                     peptide_dict[peptide['peptide_sequence']]['group_name'].append(protxml_group['cluster']['description'])
                             peptide_entry = peptide_dict[peptide['peptide_sequence']]
+                            
+
                             if protein['protein_name'] not in peptide_entry['protein_list']:
+                                
                                 peptide_entry['protein_list'].append(protein['protein_name'])
                             for scan in peptide['scans']:
                                 
                                 rep = scan['spectrum'].split('.',1)[0]
                                 
-                                for other_seqid in scan['matches'][0]['other_seqids']:
-                                    if other_seqid not in peptide_entry['protein_list']:
-                                        peptide_entry['protein_list'].append(other_seqid)
+                                #adds alternative_protein ids into protein_list (ex: sp|P46662|MERL_MOUSE)
+                                #for other_seqid in scan['matches'][0]['other_seqids']:
+                                #    if other_seqid not in peptide_entry['protein_list']:
+                                #        peptide_entry['protein_list'].append(other_seqid)
                                 
                                 #populating summary dict
                                 if protein['group_number'] not in summary_dict[rep]['groups']:
@@ -364,11 +349,11 @@ def convert_to_csv(params):
         if len(proteins) == 0:
             del protxml_groups[group_id]
     
-    print (' ####################')
-    print ('peptide dict query')
-    print ('HVLATLGEK')
-    print (peptide_dict['HVLATLGEK'])
-    print (' ####################')
+    #print (' ####################')
+    #print ('peptide dict query')
+    #print ('HVLATLGEK')
+    #print (peptide_dict['HVLATLGEK'])
+    #print (' ####################')
     
     ####################
     benchmark4 = time.time()
@@ -629,12 +614,9 @@ def convert_to_csv(params):
     peptide_report_header = peptide_report_header[:-3] + spectrum_report_scan_header[:-2] + peptide_report_header[-3:] + spectrum_report_scan_header[-2:]
     spectrum_report_rows = []
 
-    print ('checking again!!!')
-    print (peptide_dict['HVLATLGEK'])
-
     for peptide_name, peptide in peptide_dict.items():
           
-        if peptide_name == 'HVLATLGEK':
+        if peptide_name == 'LFFLQVK':
             print ('++++####################')
             print ('peptide dict items for output file')
             print (peptide_name)
