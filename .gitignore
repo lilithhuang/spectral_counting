@@ -1,0 +1,9 @@
+# Output Files #
+################
+*.tsv
+*.csv
+
+# Input Files #
+###############
+*.prot.xml
+*.pep.xml
