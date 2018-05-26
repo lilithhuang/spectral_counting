@@ -37,20 +37,41 @@ def parse_scan(scan_elem, nsmap):
       match['modified_sequence'] = attr['modified_peptide']
       for modification_elem in modified_elem.findall(fixtag('', 'mod_aminoacid_mass', nsmap)):
         attr = parse_attrib(modification_elem)
-        attr['i'] = attr['position'] - 1
+        #attr['i'] = attr['position'] - 1
+        attr['i'] = attr['position']
         del attr['position']
         match['modifications'].append(attr)
     
-    mp = match['modified_sequence']
+    n_term = ''
+    n_term_mod = None
+    mp_list = filter(None, re.split("[\[\]]", match['modified_sequence']))
+    
+    if mp_list[0] == 'n':
+      n_term_mod = {'i':0, 'mass':mp_list[1]}
+      n_term = mp_list[0] + '[' + mp_list[1] + ']'
+      mp_list = mp_list[2:]
+    
+    idx = 0
+    idx_list = [x['i'] for x in match['modifications']]
+    for i in range(0, (len(mp_list) - 1), 2):
+        idx += len(mp_list[i])
+        if idx not in idx_list:
+            match['modifications'].append({'i':idx, 'mass':mp_list[i+1]})
+    
+    mp = match['peptide']
     for mod in sorted(match['modifications'],
                 key=lambda m: m['i'],
                 reverse=True):
 
         #print (mod['i'] in range(0, 1+len(match['peptide'])))
         if mod['i'] in range(0, len(match['peptide'])):
-            p = mod['i'] + 1
-            mp = mp[:p] + '[{}]'.format(int(mod['mass'])) + mp[p:]
-    match['modified_peptide'] = mp
+          #p = mod['i'] + 1
+          p = mod['i']
+            
+          mp = mp[:p] + '[{}]'.format(int(mod['mass'])) + mp[p:]
+    match['modified_peptide'] = n_term + mp
+    if n_term_mod != None:
+      match['modifications'].append(n_term_mod)
 
     for score_elem in search_hit_elem.findall(tag('search_score')):
       match.update(parse_name_value(score_elem))

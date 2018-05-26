@@ -160,12 +160,18 @@ def convert_to_csv(params):
                         if rep not in reps: #list of reps used to generate output files
                             reps.append(rep)
                         
+                        #if rep not in protxml_group['cluster']:
+                        #    protxml_group['cluster'][rep] = {'n_peptide': [], 'n_mod_peptide': []}
                         if rep not in protein['counts']:
                             protein['counts'][rep] = {'n_peptide': [], 'n_mod_peptide': [], 'unique_peptide': [], 'unique_spectrum': [], 'total_spectrum': []}
                         
                         #unique stripped peptides and unique modified peptdies
+                        #if peptide['peptide_sequence'] not in protxml_group['cluster']['counts'][rep]['n_peptide']:
+                        #    protxml_group['cluster']['counts'][rep]['n_peptide'].append(peptide['peptide_sequence'])
                         if peptide['peptide_sequence'] not in protein['counts'][rep]['n_peptide']:
                             protein['counts'][rep]['n_peptide'].append(peptide['peptide_sequence'])
+                        #if (peptide['peptide_sequence'], scan['matches'][0]['modifications']) not in protxml_group['cluster']['counts'][rep]['n_mod_peptide']:
+                        #    protxml_group['cluster']['counts'][rep]['n_mod_peptide'].append((peptide['peptide_sequence'], scan['matches'][0]['modifications']))
                         if (peptide['peptide_sequence'], scan['matches'][0]['modifications']) not in protein['counts'][rep]['n_mod_peptide']:
                             protein['counts'][rep]['n_mod_peptide'].append((peptide['peptide_sequence'], scan['matches'][0]['modifications']))
                         
@@ -181,7 +187,12 @@ def convert_to_csv(params):
                                 protein['counts'][rep]['unique_spectrum'].append((peptide['peptide_sequence'], scan['matches'][0]['modifications'], scan['assumed_charge']))
                         
                         if rep not in protxml_group['cluster']['counts']:
-                            protxml_group['cluster']['counts'][rep] = {'unique_peptide': [], 'unique_spectrum': [], 'total_spectrum': []}
+                            protxml_group['cluster']['counts'][rep] = {'n_peptide': [], 'n_mod_peptide': [], 'unique_peptide': [], 'unique_spectrum': [], 'total_spectrum': []}
+                        #unique stripped peptides and unique modified peptdies
+                        if peptide['peptide_sequence'] not in protxml_group['cluster']['counts'][rep]['n_peptide']:
+                            protxml_group['cluster']['counts'][rep]['n_peptide'].append(peptide['peptide_sequence'])
+                        if (peptide['peptide_sequence'], scan['matches'][0]['modifications']) not in protxml_group['cluster']['counts'][rep]['n_mod_peptide']:
+                            protxml_group['cluster']['counts'][rep]['n_mod_peptide'].append((peptide['peptide_sequence'], scan['matches'][0]['modifications']))
                         #cluster total spectrum count
                         if scan['start_scan'] not in protxml_group['cluster']['counts'][rep]['total_spectrum']:
                             protxml_group['cluster']['counts'][rep]['total_spectrum'].append(scan['start_scan'])
@@ -233,21 +244,21 @@ def convert_to_csv(params):
         for i in reversed(range(len(proteins))):
             protein = proteins[i]
             #TODO
-            if protein['protein_name'] == 'p|P46662|MERL_MOUSE':
-                print (protein['protein_name'])
-                print ('FILTERING found sp|P46662|MERL_MOUSE protein')
+            #if protein['protein_name'] == 'p|P46662|MERL_MOUSE':
+            #    print (protein['protein_name'])
+            #    print ('FILTERING found sp|P46662|MERL_MOUSE protein')
             if protein['probability'] < prob_cutoff or protein['protein_name'].startswith('DECOY'):
                 #TODO
-                if protein['protein_name'] == 'sp|P46662|MERL_MOUSE':
-                    print ('deleting MERL_MOUSE bc does not meet cutoff')
-                    print (protein['protein_name'])
+                #if protein['protein_name'] == 'sp|P46662|MERL_MOUSE':
+                #    print ('deleting MERL_MOUSE bc does not meet cutoff')
+                #    print (protein['protein_name'])
                 del proteins[i]
                 protxml_group['cluster']['protein_list'].remove(protein['protein_name'])
             elif 'n_peptide' not in protein or protein['n_peptide'] == 0:
                 #TODO
-                if protein['protein_name'] == 'sp|P46662|MERL_MOUSE':
-                    print ('deleting MERL_MOUSE bc n peptide is 0')
-                    print (protein['protein_name'])
+                #if protein['protein_name'] == 'sp|P46662|MERL_MOUSE':
+                #    print ('deleting MERL_MOUSE bc n peptide is 0')
+                #    print (protein['protein_name'])
                 del proteins[i]
                 protxml_group['cluster']['protein_list'].remove(protein['protein_name'])
             else:
@@ -288,6 +299,10 @@ def convert_to_csv(params):
                             if protein['protein_name'] not in peptide_entry['protein_list']:
                                 
                                 peptide_entry['protein_list'].append(protein['protein_name'])
+                                #if protein['protein_name'] == 'sp|P46662|MERL_MOUSE':
+                                #    print ('adding MERL')
+                                #    print (protein['protein_name'])
+                                #    print (protein_entry['protein_list'])
                             for scan in peptide['scans']:
                                 
                                 rep = scan['spectrum'].split('.',1)[0]
@@ -315,22 +330,27 @@ def convert_to_csv(params):
                                     
                                     #scan['assumed_charge'],
                                     peptide_entry['counts'][rep]['scans'].append((scan['start_scan'], scan['matches'][0]['modified_peptide'], scan['matches'][0]['modifications'], scan['assumed_charge'], scan['matches'][0]['peptide_prev_aa'], scan['matches'][0]['peptide_next_aa'], scan['precursor_neutral_mass'], scan['retention_time_sec'], scan['matches'][0]['num_tot_proteins'], scan['matches'][0]['num_matched_ions'], scan['matches'][0]['tot_num_ions'], scan['matches'][0]['num_tol_term'], scan['matches'][0]['calc_neutral_pep_mass'], scan['matches'][0]['num_missed_cleavages'], scan['matches'][0]['massdiff'], scan['matches'][0]['expect'], scan['matches'][0]['deltacn'] if 'deltacn' in scan['matches'][0] else "-", scan['matches'][0]['spscore'] if 'spscore' in scan['matches'][0] else "-", scan['matches'][0]['xcorr'] if 'xcorr' in scan['matches'][0] else "-", scan['matches'][0]['num_matched_peptides'] if 'num_matched_peptides' in scan['matches'][0] else "-", scan['matches'][0]['probability'], scan['matches'][0]['peptideprophet_probability']))
+                                    peptide_entry['counts'][rep]['modified_peptides'].append(scan['matches'][0]['modified_peptide']) #list of modifications for peptide report
                                     peptide_entry['mods'] = [scan['matches'][0]['modified_peptide']] #list of unique modifications for peptide report
-                                    #proteins[i]['counts'][rep]['modified_peptides'].append(scan['matches'][0]['modified_peptide']) #list of modified seqs for protein report
+                                    #peptide_entry['counts'][rep]['modified_peptides'].append(scan['matches'][0]['modified_peptide'])
+                                    #proteins[i]['counts'][rep]['modified_peptides'].append(scan['matches'][0]['modified_peptide']) #list of modified seqs for peptide report
                                     #proteins[i]['counts'][rep]['peptides'].append(scan['matches'][0]['peptide']) #list of seqs for protein report
                                     summary_dict[rep]['n_spectra'] += 1
         
                                 else:
                                     if scan['matches'][0]['modified_peptide'] not in  peptide_entry['mods']:
-                                        peptide_entry['mods'].append(scan['matches'][0]['modified_peptide'])
+                                        peptide_entry['mods'].append(scan['matches'][0]['modified_peptide']) #list of unique modifications for peptide report
+                                    
+                                    peptide_entry['counts'][rep]['modified_peptides'].append(scan['matches'][0]['modified_peptide'])
                                         
                                     if (scan['start_scan'], scan['matches'][0]['modified_peptide'], scan['matches'][0]['modifications'], scan['assumed_charge'], scan['matches'][0]['peptide_prev_aa'], scan['matches'][0]['peptide_next_aa'], scan['precursor_neutral_mass'], scan['retention_time_sec'], scan['matches'][0]['num_tot_proteins'], scan['matches'][0]['num_matched_ions'], scan['matches'][0]['tot_num_ions'], scan['matches'][0]['num_tol_term'], scan['matches'][0]['calc_neutral_pep_mass'], scan['matches'][0]['num_missed_cleavages'], scan['matches'][0]['massdiff'], scan['matches'][0]['expect'], scan['matches'][0]['deltacn'] if 'deltacn' in scan['matches'][0] else "-", scan['matches'][0]['spscore'] if 'spscore' in scan['matches'][0] else "-", scan['matches'][0]['xcorr'] if 'xcorr' in scan['matches'][0] else "-", scan['matches'][0]['num_matched_peptides'] if 'num_matched_peptides' in scan['matches'][0] else "-", scan['matches'][0]['probability'], scan['matches'][0]['peptideprophet_probability']) not in peptide_entry['counts'][rep]['scans']:
                                         peptide_entry['counts'][rep]['scans'].append((scan['start_scan'], scan['matches'][0]['modified_peptide'], scan['matches'][0]['modifications'], scan['assumed_charge'], scan['matches'][0]['peptide_prev_aa'], scan['matches'][0]['peptide_next_aa'], scan['precursor_neutral_mass'], scan['retention_time_sec'], scan['matches'][0]['num_tot_proteins'], scan['matches'][0]['num_matched_ions'], scan['matches'][0]['tot_num_ions'], scan['matches'][0]['num_tol_term'], scan['matches'][0]['calc_neutral_pep_mass'], scan['matches'][0]['num_missed_cleavages'], scan['matches'][0]['massdiff'], scan['matches'][0]['expect'], scan['matches'][0]['deltacn'] if 'deltacn' in scan['matches'][0] else "-", scan['matches'][0]['spscore'] if 'spscore' in scan['matches'][0] else "-", scan['matches'][0]['xcorr'] if 'xcorr' in scan['matches'][0] else "-", scan['matches'][0]['num_matched_peptides'] if 'num_matched_peptides' in scan['matches'][0] else "-", scan['matches'][0]['probability'], scan['matches'][0]['peptideprophet_probability']))
-                                        
+                                        #if scan['matches'][0]['modified_peptide'] not in peptide_entry['counts'][rep]['modified_peptides']:
+                                        #    peptide_entry['counts'][rep]['modified_peptides'].append(scan['matches'][0]['modified_peptide'])
                                         #if scan['matches'][0]['modified_peptide'] not in proteins[i]['counts'][rep]['modified_peptides']: #list of mod seqs for protein report
                                         #    proteins[i]['counts'][rep]['modified_peptides'].append(scan['matches'][0]['modified_peptide'])
-                                        #if scan['matches'][0]['peptide'] not in proteins[i]['counts'][rep]['peptides']: #list of seqs for protein report    
-                                        #    proteins[i]['counts'][rep]['peptides'].append(scan['matches'][0]['peptide'])
+                                        if scan['matches'][0]['peptide'] not in peptide_entry['counts'][rep]['peptides']: #list of seqs for peptide report    
+                                            peptide_entry['counts'][rep]['peptides'].append(scan['matches'][0]['peptide'])
                                         summary_dict[rep]['n_spectra'] += 1
         
                                         if peptide_entry['counts'][rep]['best_prob'] < scan['matches'][0]['probability']:
@@ -348,12 +368,6 @@ def convert_to_csv(params):
                 print ('----')
         if len(proteins) == 0:
             del protxml_groups[group_id]
-    
-    #print (' ####################')
-    #print ('peptide dict query')
-    #print ('HVLATLGEK')
-    #print (peptide_dict['HVLATLGEK'])
-    #print (' ####################')
     
     ####################
     benchmark4 = time.time()
@@ -492,6 +506,8 @@ def convert_to_csv(params):
                 for title, key in protein_quant_pairs:
                     if isinstance(key, tuple):
                         prot_quant_row.append(len(protein['counts'][key[0]][key[1]]) if key[0] in protein['counts'] else "0")
+                    elif (key == 'protein_group_id'):
+                        prot_quant_row.append(group['cluster'][key] if key in group['cluster'] else "-")
                     else:
                         prot_quant_row.append(protein[key] if key in protein else "-")
                 protein_quant_rows.append(prot_quant_row)
@@ -511,7 +527,7 @@ def convert_to_csv(params):
                         #            skip = True
                         #    else:
                         #        skip = True
-                        if ( key == 'peptides' or key == 'modified_peptides' or key == 'unique_peptide' or key == 'unique_spectrum' or key == 'total_spectrum'):
+                        if ( key == 'n_peptide' or key == 'n_mod_peptide' or key == 'unique_peptide' or key == 'unique_spectrum' or key == 'total_spectrum'):
                             prot_report_row.append(len(group['cluster']['counts'][rep][key]) if rep in group['cluster']['counts'] else "0")
                         elif key == 'probability':
                             prot_report_row.append(group[key] if key in group else "")
@@ -534,7 +550,7 @@ def convert_to_csv(params):
                                     skip = True
                             else:
                                 skip = True
-                        if (key == 'unique_peptide' or key == 'unique_spectrum' or key == 'total_spectrum'):
+                        if (key in ['unique_peptide', 'unique_spectrum', 'total_spectrum', 'n_peptide', 'n_mod_peptide']):
                             prot_report_row.append(len(protein['counts'][rep][key]) if rep in protein['counts'] else "0")
                         elif (key == 'protein_group_id'):
                             prot_report_row.append(group['cluster'][key] if key in group['cluster'] else "-")
@@ -551,7 +567,7 @@ def convert_to_csv(params):
             ('Protein Accession Numbers', 'protein_list')
     ]
 
-    peptide_quant_header = [title for title, key in peptide_quant_pairs]
+    peptide_quant_header = ['MS/MS Sample Name'] + [title for title, key in peptide_quant_pairs]
     peptide_quant_header.append('Peptide Sequence')
     peptide_quant_header.append('Modified Sequence')
     for rep in reps:
@@ -614,26 +630,23 @@ def convert_to_csv(params):
     peptide_report_header = peptide_report_header[:-3] + spectrum_report_scan_header[:-2] + peptide_report_header[-3:] + spectrum_report_scan_header[-2:]
     spectrum_report_rows = []
 
-    for peptide_name, peptide in peptide_dict.items():
-          
-        if peptide_name == 'LFFLQVK':
-            print ('++++####################')
-            print ('peptide dict items for output file')
-            print (peptide_name)
-            print (peptide)
-            print ('+++++####################')
-            
-          
-          
-        
+    for peptide_name, peptide in peptide_dict.items():          
+                
         pep_quant_row = []
         #pep_report_row = []
         
         for title, key in peptide_quant_pairs:
-            if key == 'protein_list':
-                pep_quant_row.append(','.join(peptide[key]) if key in peptide else "-")
+            #if key == 'protein_list':
+            #    pep_quant_row.append(','.join(peptide[key]) if key in peptide else "-")
+            #elif key == 'group_number':
+            #    print (peptide[key])
+            #    pep_quant_row.append(','.join(peptide[key]) if key in peptide else "-")
+            if key == 'group_number':
+                pep_quant_row.append(','.join(str(x) for x in peptide[key]) if key in peptide else "-")
             else:
-                pep_quant_row.append(peptide[key] if key in peptide else "-")
+                pep_quant_row.append(','.join(peptide[key]) if key in peptide else "-")
+            #else:
+            #    pep_quant_row.append(peptide[key] if key in peptide else "-")
                 #pep_report_row.append(peptide[key] if key in peptide else "-")
         pep_quant_row.append(peptide_name)
         #pep_report_row.append(peptide_name)
@@ -681,7 +694,7 @@ def convert_to_csv(params):
                     pep_mod_row.append(counter_dict[mod] if mod in counter_dict else 0)
                 else:
                     pep_mod_row.append(0)
-            peptide_quant_rows.append(pep_quant_row + pep_mod_row)
+            peptide_quant_rows.append([rep] + pep_quant_row + pep_mod_row)
     
     #SUMMARY
     summary_report_pairs = [
