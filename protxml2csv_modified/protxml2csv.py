@@ -117,6 +117,9 @@ def convert_to_csv(params):
     print (benchmark2 - benchmark1)
     ####################
     
+    #just for checking
+    protein_dict = {}
+    
     n_unique_scan_total = 0
     reps = []
     for group_id, protxml_group in protxml_groups.items():
@@ -129,7 +132,17 @@ def convert_to_csv(params):
             if protein['group_sibling_id'] == 'a':
                 protxml_group['cluster']['protein_group_id'] = protein['protein_name']
                 protxml_group['cluster']['description'] = 'Cluster of ' + protein['description']
-
+            
+            #just for checking
+            if protein['protein_name'] not in protein_dict:
+                protein_dict[protein['protein_name']] = [group_id]
+            else:
+                if group_id not in protein_dict[protein['protein_name']]:
+                    protein_dict[protein['protein_name']].append(group_id)
+                    print ('overlapping group ids')
+                    print (protein['protein_name'])
+                    print (protein_dict[protein['protein_name']])
+                    
             protein['counts'] = {}
             #protein['n_peptide'] = len(protein['peptides']) # this can be wrong -> need to check length of scans (might not need this)
             protein['n_peptide'] = 0
@@ -319,8 +332,8 @@ def convert_to_csv(params):
                                     summary_dict[rep]['proteins'].append(protein['protein_name'])
                                 if scan['matches'][0]['peptide'] not in summary_dict[rep]['peptides']:
                                     summary_dict[rep]['peptides'].append(scan['matches'][0]['peptide'])
-                                if (scan['matches'][0]['peptide'], scan['matches'][0]['modifications'], scan['matches'][0]['modified_peptide']) not in summary_dict[rep]['modified']:
-                                    summary_dict[rep]['modified'].append((peptide['peptide_sequence'], peptide['modifications'], scan['matches'][0]['modified_peptide']))
+                                if (scan['matches'][0]['peptide'], scan['matches'][0]['modified_peptide']) not in summary_dict[rep]['modified']:
+                                    summary_dict[rep]['modified'].append((scan['matches'][0]['peptide'], scan['matches'][0]['modified_peptide']))
                                 if (scan['start_scan'], scan['matches'][0]['peptide']) not in summary_dict[rep]['spectra']: #TODO check this
                                     summary_dict[rep]['spectra'].append((scan['start_scan'], scan['matches'][0]['peptide']))
         
@@ -383,6 +396,15 @@ def convert_to_csv(params):
     print ('finished peptide dict')
     print (benchmark4 - benchmark3)
     ####################
+
+    protein_row_checking = []
+    for protein, protein_id in protein_dict.items():
+        protein_row_checking.append([protein, protein_id])
+    
+    print "WRITING:", os.path.abspath('protein_group_checking.csv')
+    csv_writer = csv.writer(open('protein_group_checking.csv', 'wb'))
+    for row in protein_row_checking:
+        csv_writer.writerow(row)
 
     title_key_pairs = [
         ('group', 'group_number'),
@@ -578,7 +600,7 @@ def convert_to_csv(params):
             ('Protein Accession Numbers', 'protein_list')
     ]
 
-    peptide_quant_header = ['MS/MS Sample Name'] + [title for title, key in peptide_quant_pairs]
+    peptide_quant_header = [title for title, key in peptide_quant_pairs]
     peptide_quant_header += ['Peptide Sequence', 'Modified Sequence', 'Best Modified Peptide Identification Probability']
     
     for rep in reps:
@@ -599,7 +621,7 @@ def convert_to_csv(params):
             ('Unique', 'is_nondegenerate_evidence'),
             #('Number of Total Proteins', 'num_tot_proteins'),
             #('Number of Missed Cleavages', 'num_missed_cleavages'),
-            ('Best Peptide Identification Probability', 'best_prob')
+            #('Best Peptide Identification Probability', 'best_prob')
     ]
 
     peptide_report_header = [title for title, key in peptide_report_pairs]
@@ -639,7 +661,7 @@ def convert_to_csv(params):
     spectrum_report_header = [title for title, key in peptide_report_pairs]
     spectrum_report_header.insert(0, 'MS/MS Sample Name')
     spectrum_report_header += spectrum_report_scan_header
-    peptide_report_header = peptide_report_header[:-3] + spectrum_report_scan_header[:-2] + peptide_report_header[-3:] + spectrum_report_scan_header[-2:]
+    peptide_report_header = peptide_report_header[:-3] + spectrum_report_scan_header[:-2] + peptide_report_header[-3:]
     spectrum_report_rows = []
 
     for peptide_name, peptide in peptide_dict.items():          
@@ -695,7 +717,7 @@ def convert_to_csv(params):
                         #peptide_report_rows.append([rep] + pep_quant_row[0:4] + pep_row[:-3] + scan_row[:-2] + pep_row[-3:] + scan_row[-2:])
                         #print ('get rid of following?')
                         #print (pep_row[:-3])
-                        peptide_report_rows.append([rep] + pep_quant_row[0:4]  + scan_row[:-2] + pep_row[-3:] + [peptide['counts'][rep]['best_mod_prob'][scan_row[2]]] + scan_row[-2:])
+                        peptide_report_rows.append([rep] + pep_quant_row[0:4]  + scan_row[:-2] + pep_row[-3:] + [peptide['counts'][rep]['best_mod_prob'][scan_row[2]]])
                         #peptide_report_rows.append([rep] + pep_quant_row[0:4]  + scan_row[:-2] + pep_row[-3:-1] + peptide_entry['counts'][rep]['best_mod_prob'][scan_row[2]] + scan_row[-2:])
                         
                     #scan_row = [x for x in scan]
@@ -719,7 +741,7 @@ def convert_to_csv(params):
                     pep_mod_row.append(counter_dict[mod] if mod in counter_dict else 0)
                 else:
                     pep_mod_row.append(0)
-            peptide_quant_rows.append([rep] + pep_quant_row + pep_mod_row)
+            peptide_quant_rows.append(pep_quant_row + pep_mod_row)
     
     #SUMMARY
     summary_report_pairs = [
