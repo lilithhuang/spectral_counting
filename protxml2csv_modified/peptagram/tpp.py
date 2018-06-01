@@ -35,6 +35,11 @@ def parse_scan(scan_elem, nsmap):
     for modified_elem in search_hit_elem.findall(fixtag('', 'modification_info', nsmap)):
       attr = parse_attrib(modified_elem)
       match['modified_sequence'] = attr['modified_peptide']
+      if 'mod_nterm_mass' in match:
+          if 'mod_nterm_mass' in info:
+            match['modifications'].insert(0, {'i': 0,'mass': float(info.pop('mod_nterm_mass'))})
+          if 'mod_cterm_mass' in info:
+            match['modifications'].append({'i': 1 + len(info['peptide']),'mass': float(info.pop('mod_cterm_mass'))})
       for modification_elem in modified_elem.findall(fixtag('', 'mod_aminoacid_mass', nsmap)):
         attr = parse_attrib(modification_elem)
         #attr['i'] = attr['position'] - 1
@@ -221,8 +226,13 @@ def parse_protein_group(elem, nsmap):
     for peptide_elem in protein_elem.findall(fixtag('', 'peptide', nsmap)):
       peptide = parse_attrib(peptide_elem)
       protein['peptides'].append(peptide)
+      peptide['indistinguishable_peptide'] = []
       peptide['modifications'] = []
       peptide['modified_sequence'] = peptide['peptide_sequence']
+      for indistinguishable_peptide in peptide_elem.findall(fixtag('', 'indistinguishable_peptide', nsmap)):
+          attr = parse_attrib(indistinguishable_peptide)
+          if attr['peptide_sequence'] != peptide['peptide_sequence'] and attr['peptide_sequence'] not in peptide['indistinguishable_peptide']:
+            peptide['indistinguishable_peptide'].append(attr['peptide_sequence'])
       for modified_elem in peptide_elem.findall(fixtag('', 'modification_info', nsmap)):
         attr = parse_attrib(modified_elem)
         peptide['modified_sequence'] = attr['modified_peptide']
