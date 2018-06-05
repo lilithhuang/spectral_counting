@@ -221,11 +221,14 @@ def parse_protein_group(elem, nsmap):
     protein['other_seqids'] = protein['other_seqids']
     protein['protein_name'] = protein['protein_name']
 
-    protein['peptides'] = []
+    protein['peptides'] = {}
     n_unique_peptide = 0
     for peptide_elem in protein_elem.findall(fixtag('', 'peptide', nsmap)):
       peptide = parse_attrib(peptide_elem)
-      protein['peptides'].append(peptide)
+      #sequence = peptide['peptide_sequence']
+      #print (type(sequence))
+      protein['peptides'][peptide['peptide_sequence']] = peptide
+      #print (protein['peptides'][peptide['peptide_sequence']])
       peptide['indistinguishable_peptide'] = []
       peptide['modifications'] = []
       peptide['modified_sequence'] = peptide['peptide_sequence']
@@ -239,7 +242,7 @@ def parse_protein_group(elem, nsmap):
         for modification_elem in modified_elem.findall(fixtag('', 'mod_aminoacid_mass', nsmap)):
           attr = parse_attrib(modification_elem)
           peptide['modifications'].append(attr)
-
+    
     group['proteins'].append(protein)
   return group
 
