@@ -305,8 +305,8 @@ def convert_to_csv(params):
     for group_id, protxml_group in protxml_groups.items():
         
         #updating representative protein
-        protxml_groups[group_id]['cluster']['proteins'] = sorted(group['proteins'], key=lambda x:x['group_sibling_id'])
-        protein = protxml_groups[group_id]['cluster']['proteins'][0]
+        protxml_groups[group_id]['proteins'] = sorted(protxml_groups[group_id]['proteins'], key=lambda x:x['group_sibling_id'])
+        protein = protxml_groups[group_id]['proteins'][0]
         if protxml_groups[group_id]['cluster']['protein_group_id'] != protein['protein_name']:
             print (protein['protein_name'])
             protxml_groups[group_id]['cluster']['protein_group_id'] = protein['protein_name']
@@ -559,7 +559,7 @@ def convert_to_csv(params):
             #skip = False # only output proteins/clusters with total_spectrum > 0
             
             #protein report cluster entry
-            protein = group['cluster']['proteins'][0]
+            protein = group['proteins'][0]
             
             skip = False
             for title, key in protein_pairs:
@@ -812,13 +812,13 @@ def convert_to_csv(params):
                 summary_report_row += [entry[value]]
             else:
                 summary_report_row += [len(entry[value]) if value in entry else "-"]
-            if value in ['groups', 'proteins']:
-                filename = rep+key+'.csv'
-                print "-"*60
-                print "WRITING:", os.path.abspath(filename)
-                csv_writer = csv.writer(open(filename, 'wb'))
-                for row in entry[value]:
-                    csv_writer.writerow([row])
+            #if value in ['groups', 'proteins']:
+            #    filename = rep+key+'.csv'
+            #    print "-"*60
+            #    print "WRITING:", os.path.abspath(filename)
+            #    csv_writer = csv.writer(open(filename, 'wb'))
+            #    for row in entry[value]:
+            #        csv_writer.writerow([row])
         summary_report_rows.append(summary_report_row)
 
     rows.sort(key=lambda r:r[0])
