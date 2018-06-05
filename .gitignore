@@ -7,3 +7,7 @@
 ###############
 *.prot.xml
 *.pep.xml
+
+# Binary Files #
+###############
+*.pyc
